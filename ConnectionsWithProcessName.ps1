@@ -17,7 +17,7 @@ Get-NetTCPConnection `
   @{Label = "RemoteAddress";Expression = {[string]($_.RemoteAddress)}}, `
   @{Label = "Port";Alignment = "Left";Expression = {[int]($_.RemotePort)}}, `
 
-  @{Label = "Ping";Expression = {[int]((Test-Connection -TargetName $_.RemoteAddress -IPv4 -Count 1).Latency)}} ` # Custom output table (2)
+  @{Label = "Ping";Expression = {[int]((Test-Connection -TargetName $_.RemoteAddress -IPv4 -Count 1).Latency)}} # Custom output table (2)
 
 # Footnote:
 #   1. Applied settings https://docs.microsoft.com/en-us/powershell/module/nettcpip/set-nettcpsetting?view=windowsserver2022-ps
