@@ -22,5 +22,6 @@ Get-NetTCPConnection `
 # Footnote:
 #   1. Applied settings https://docs.microsoft.com/en-us/powershell/module/nettcpip/set-nettcpsetting?view=windowsserver2022-ps
 #   2. Custom output tables https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/format-table?view=powershell-7.2
-# Also command line can be usefulll? @{Label = "CommandLine";Expression = {[string]((Get-Process -Id $_.OwningProcess).CommandLine)}}
-# @{Label = "OwningProcessId";Expression = {[int]($_.OwningProcess)}}, `
+#   3. More usefull columns:
+#      @{Label = "CommandLine";Expression = {[string]((Get-Process -Id $_.OwningProcess).CommandLine)}}
+#      @{Label = "OwningProcessId";Expression = {[int]($_.OwningProcess)}}, `
