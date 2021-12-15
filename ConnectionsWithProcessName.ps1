@@ -24,3 +24,4 @@ Get-NetTCPConnection `
 #   3. More usefull columns:
 #      @{Label = "CommandLine";Expression = {[string]((Get-Process -Id $_.OwningProcess).CommandLine)}}
 #      @{Label = "OwningProcessId";Expression = {[int]($_.OwningProcess)}}, `
+#       TODO: pipe it all into ImportExcel module
