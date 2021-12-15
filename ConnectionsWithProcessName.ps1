@@ -11,12 +11,12 @@ Get-NetTCPConnection `
   | Sort-Object -Property RemoteAddress ` # Sort by remote Addresses
   | where -Value "127.0.0.1" -NotIn -Property RemoteAddress ` # Filter locallhost connections
   | where -Property OwningProcess -In -Value (Get-Process -Name $ProcessOfInterest).Id ` # Filter by the Name for a process of interest
-  Format-Table `
+  | Format-Table `
   @{Label = "OwningProcessName";Expression = {[string](Get-Process -Id $_.OwningProcess).Name}}, `
   @{Label = "LocalPort";Expression = {[int]($_.LocalPort)}}, `
   @{Label = "RemoteAddress";Expression = {[string]($_.RemoteAddress)}}, `
   @{Label = "Port";Alignment = "Left";Expression = {[int]($_.RemotePort)}}, `
-  @{Label = "Ping";Expression = {[int]((Test-Connection -TargetName $_.RemoteAddress -IPv4 -Count 1).Latency)}}
+  @{Label = "Ping";Expression = {[int]((Test-Connection -TargetName $_.RemoteAddress -IPv4 -Count 1).Latency)}} ` # Custom output table (2)
 
 # Footnote:
 #   1. Applied settings https://docs.microsoft.com/en-us/powershell/module/nettcpip/set-nettcpsetting?view=windowsserver2022-ps
