@@ -17,7 +17,7 @@ function GetHost {
     return "-"
   }
 }
-$gethostDef = $function:GetHost.ToString() # The whole functions in the -Parallel foreach ehnanigans (5)
+$gethostDef = $function:GetHost.ToString() # Serializing function to pass into ForEach-Object -Parallel (5)
 
 # Get all TCP Connections whith our process names
 $Connections = Get-NetTCPConnection `
@@ -36,9 +36,9 @@ $Connections | ForEach-Object -Parallel {
   $function:GetHost = $using:gethostDef # recreating function from string definition in every single context (5)
   $_ | Add-Member -NotePropertyName Ping -NotePropertyValue ((Test-Connection -TargetName $_.RemoteAddress -IPv4 -Count 1).Latency)
   $_ | Add-Member -NotePropertyName OwningProcessName -NotePropertyValue ((Get-Process -Id $_.OwningProcess).Name)
-  $_ | Add-Member -NotePropertyName CommandLine -NotePropertyValue((Get-Process -Id $_.OwningProcess).CommandLine)
   $_ | Add-Member -NotePropertyName Hostname -NotePropertyValue(GetHost $_.RemoteAddress)
-}
+  $_ | Add-Member -NotePropertyName CommandLine -NotePropertyValue((Get-Process -Id $_.OwningProcess).CommandLine)
+  }
 
 # Outputing to STDIO with custom table formatting
 $Connections | Format-Table `
