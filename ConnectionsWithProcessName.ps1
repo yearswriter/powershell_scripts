@@ -5,13 +5,13 @@
 #>
 param(
   [Parameter(Mandatory=$false)]
-  [string[]]$Name = '*'
+  [string[]]$NameToFilter = '*'
 )
 #Requires -Version 7
 #Requires -Modules ImportExcel
 
 
-Set-Variable ProcessOfInterest -Option ReadOnly -Value $Name # Name(s) for a process(es) of interest
+Set-Variable ProcessOfInterest -Option ReadOnly -Value $NameToFilter # Name(s) for a process(es) of interest
 Set-Variable Output -Option ReadOnly -Value "./output.xlsx" # Name for output xlsx file
 Set-Variable SheetName -Option ReadOnly -Value "process connections" # Name for output xlsx file
 
@@ -24,7 +24,29 @@ function GetHost {
     return "-"
   }
 }
-$gethostDef = $function:GetHost.ToString() # Serializing function to pass into ForEach-Object -Parallel (5)
+$getHostDef = $function:GetHost.ToString() # Serializing function to pass into ForEach-Object -Parallel (5)
+
+# Helper function to return name of shared service (instead of 'svchost')
+function ProcessOrServiceName {
+  param ([System.Object]$Process)
+  [string]$Name = '-'
+
+  # get Service name through CIM objects (6,7)
+  if ($Process.Name -eq 'svchost'){
+    $Name = (
+      Get-CimInstance -ClassName Win32_Service | ` # Get CIM (Wim, since we on windows) object of services
+      where {
+        $_.Started -eq "True" -and ` # Only currently running services
+        $_.ServiceType -eq "Share Process" -and ` # Only Shared Process services (svchost)
+        $_.ProcessId -eq $Process.Id # With process ID we are interested in
+      }
+    ).Name
+  } else {
+    $Name = $Process.Name
+  }
+  return $Name
+}
+$processOrServiceNameDef = $function:ProcessOrServiceName.ToString() # Serializing function to pass into ForEach-Object -Parallel (5)
 
 # Get all TCP Connections whith our process names
 $Connections = Get-NetTCPConnection `
@@ -40,9 +62,10 @@ $Connections = Get-NetTCPConnection `
 
 # Enriching $Connections object (3)
 $Connections | ForEach-Object -Parallel {
-  $function:GetHost = $using:gethostDef # recreating function from string definition in every single context (5)
+  $function:GetHost = $using:getHostDef # recreating function from string definition in every single context (5)
+  $function:ProcessOrServiceName = $using:processOrServiceNameDef # recreating function from string definition in every single context (5)
   $_ | Add-Member -NotePropertyName Ping -NotePropertyValue ((Test-Connection -TargetName $_.RemoteAddress -IPv4 -Count 1).Latency)
-  $_ | Add-Member -NotePropertyName OwningProcessName -NotePropertyValue ((Get-Process -Id $_.OwningProcess).Name)
+  $_ | Add-Member -NotePropertyName OwningProcessName -NotePropertyValue (ProcessOrServiceName (Get-Process -Id $_.OwningProcess))
   $_ | Add-Member -NotePropertyName Hostname -NotePropertyValue(GetHost $_.RemoteAddress)
   $_ | Add-Member -NotePropertyName CommandLine -NotePropertyValue((Get-Process -Id $_.OwningProcess).CommandLine)
   }
@@ -65,3 +88,7 @@ $Connections | Export-Excel $Output -WorksheetName $SheetName -TitleBold -AutoSi
 #   3. Adding custom properties and methods to PS object https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/add-member?view=powershell-7.2
 #   4. help export-excel
 #   5. Powershell have problems with function pasing https://stackoverflow.com/questions/61273189/how-to-pass-a-custom-function-inside-a-foreach-object-parallel
+#   6. How to get service name for svchost process (deprecated, but usefull parameters)
+#       Post on technet: https://social.technet.microsoft.com/Forums/en-US/ee950af0-8708-4ad1-b1fc-83456d377c0a/powershell-to-find-which-service-runs-under-which-svchost-process?forum=win10itprohardware#f0e7984a-86e4-4e94-99db-7df87f4c4c04
+#       Deprecated Get-WmiObject https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-wmiobject?view=powershell-5.1
+#   7. Get-CimInstance https://devblogs.microsoft.com/powershell/introduction-to-cim-cmdlets/
