@@ -1,10 +1,17 @@
+<#
+  This will get all connections with Get-NetTCPConnection cmdlet,
+  filter them by list of names provided in $Name parameter,
+  display it in custom table and save to excel sheet.
+#>
+param(
+  [Parameter(Mandatory=$false)]
+  [string[]]$Name = '*'
+)
 #Requires -Version 7
 #Requires -Modules ImportExcel
-# This will get all connections with Get-NetTCPConnection cmdlet,
-#  filter them by list of names provided in ProcessOfInterest variable
-#  and display it in custom table
 
-Set-Variable ProcessOfInterest -Option ReadOnly -Value *iot*,League* # Name(s) for a process(es) of interest
+
+Set-Variable ProcessOfInterest -Option ReadOnly -Value $Name # Name(s) for a process(es) of interest
 Set-Variable Output -Option ReadOnly -Value "./output.xlsx" # Name for output xlsx file
 Set-Variable SheetName -Option ReadOnly -Value "process connections" # Name for output xlsx file
 
