@@ -53,7 +53,7 @@ function ProcessOrServiceName {
   if ($Process.Name -eq 'svchost'){
     $Name = (
       Get-CimInstance -ClassName Win32_Service | ` # Get CIM (Wim, since we on windows) object of services
-      where {
+      Where-Object {
         $_.Started -eq "True" -and ` # Only currently running services
         $_.ProcessId -eq $Process.Id # With process ID we are interested in
       }
@@ -69,8 +69,8 @@ $processOrServiceNameDef = $function:ProcessOrServiceName.ToString() # Serializi
 $Connections = Get-NetTCPConnection `
   -AppliedSetting Internet ` # Filter conections optimised for internet (1)
   | Sort-Object -Property RemoteAddress ` # Sort by remote Addresses
-  | where -Value "127.0.0.1" -NotIn -Property RemoteAddress ` # Filter locallhost connections
-  | where -Property OwningProcess -In -Value (Get-Process -Name $ProcessOfInterest).Id ` # Filter by the Name for a process of interest
+  | Where-Object -Value "127.0.0.1" -NotIn -Property RemoteAddress ` # Filter locallhost connections
+  | Where-Object -Property OwningProcess -In -Value (Get-Process -Name $ProcessOfInterest).Id ` # Filter by the Name for a process of interest
   | Select-Object -Property `
       OwningProcess, `
       LocalPort, `
