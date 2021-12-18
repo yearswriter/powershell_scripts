@@ -4,7 +4,9 @@
   display it in custom table and save to excel sheet.
 #>
 param(
-  [string[]]$NameToFilter = '*'
+  [string[]]$NameToFilter = '*',
+  [switch]$DoPing,
+  [switch]$DoGetHost
 )
 #Requires -Version 7
 #Requires -Modules ImportExcel
@@ -13,27 +15,30 @@ param(
 Set-Variable ProcessOfInterest -Option ReadOnly -Value $NameToFilter # Name(s) for the process(es) of interest
 Set-Variable Output -Option ReadOnly -Value "./output.xlsx" # Name for output xlsx file
 Set-Variable SheetName -Option ReadOnly -Value "process connections" # Name for the page in the exel file
-
 # Helper function to get hostname with Ip
 function GetHost {
-  param ([string]$Ip)
+  param ([string]$Ip, $DoGetHost)
   [string]$ResolvedDN = '-'
-  try {
-    $ResolvedDN = [System.Net.Dns]::GetHostByAddress($Ip).Hostname
-  } catch {
-    $ResolvedDN = '~'
+  if ( $DoGetHost ) {
+    try {
+      $ResolvedDN = [System.Net.Dns]::GetHostByAddress($Ip).Hostname
+    } catch {
+      $ResolvedDN = '~'
+    }
   }
   return $ResolvedDN
 }
 $getHostDef = $function:GetHost.ToString() # Serializing function to pass into ForEach-Object -Parallel (5)
 # Helper ping function
 function PingHost {
-  param ([string]$Ip)
+  param ([string]$Ip, $DoPing)
   [int]$Latency = -1
-  try {
-    $Latency = (Test-Connection -TargetName $Ip -Count 1).Latency
-  } catch {
-    $Latency = -2
+  if ( $DoPing ) {
+    try {
+      $Latency = (Test-Connection -TargetName $Ip -Count 1).Latency
+    } catch {
+      $Latency = -2
+    }
   }
   return $Latency
 }
@@ -77,9 +82,9 @@ $Connections | ForEach-Object -Parallel {
   $function:GetHost = $using:getHostDef # recreating function from string definition in every single context (5)
   $function:PingHost = $using:pingHostDef # recreating function from string definition in every single context (5)
   $function:ProcessOrServiceName = $using:processOrServiceNameDef # recreating function from string definition in every single context (5)
-  $_ | Add-Member -NotePropertyName Ping -NotePropertyValue (PingHost $_.RemoteAddress)
+  $_ | Add-Member -NotePropertyName Ping -NotePropertyValue (PingHost -Ip $_.RemoteAddress -DoPing $($using:DoPing))
   $_ | Add-Member -NotePropertyName OwningProcessName -NotePropertyValue (ProcessOrServiceName (Get-Process -Id $_.OwningProcess))
-  $_ | Add-Member -NotePropertyName Hostname -NotePropertyValue(GetHost $_.RemoteAddress)
+  $_ | Add-Member -NotePropertyName Hostname -NotePropertyValue(GetHost -Ip $_.RemoteAddress -DoGetHost $($using:DoGetHost))
   $_ | Add-Member -NotePropertyName CommandLine -NotePropertyValue((Get-Process -Id $_.OwningProcess).CommandLine)
   }
 
