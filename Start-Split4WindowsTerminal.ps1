@@ -1,4 +1,4 @@
-function Start-WindowsTerminalSplit4 {
+function Start-Split4WindowsTerminal {
     param(
         $command1 = "pwsh",
         $command2 = "pwsh",
