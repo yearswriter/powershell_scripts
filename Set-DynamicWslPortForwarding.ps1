@@ -1,19 +1,42 @@
 <#
- This will open an aray of ports on your WSL to the world
- by means of getting wsl instance ip,
- removing old and setting new windows firewall rules,
- removing old and setting new portproxy
- on windows virtual interfaces using netsh
+.SYNOPSIS
+	Opens WSL to external connections in and out
+.DESCRIPTION
+	This will port forward one or more ports from your
+	host machine internet connection to the WSL
+	by means of:
+		 - getting wsl instance ip,
+		 - removing old and setting new windows firewall rules,
+		 - removing old and setting new portproxy
+		 (on windows virtual interfaces using netsh)
+.PARAMETER Ports
+	Specifies ports which would be forwarded to and from wsl.
 
- !make sure WSL OS firewall is configured accordingly!
+.PARAMETER ListenToIp
+	Specifies interface on the host machine on which ports will be open. 0.0.0.0 listens to all.
+
+.PARAMETER FirewallRuleName
+	Specifies name of the host machine's firewall rule name
+
+.PARAMETER WslUser
+	Specifies wsl guest username to restart wsl services, in case it is needed
+
+.PARAMETER ServicesToRestart
+	Specifies comma-separated services name to restart on wsl machine, in case it is needed
+
+.EXAMPLE
+	.\DynamicWslPortForwarding.ps1 -Ports 22 -ListenToIP '0.0.0.0' -WslFirewallRuleName 'WSL 2 Firewall Porforwarding' -WslUser user -ServicesToRestart ssh
+.NOTES
+	!make sure WSL OS firewall is configured accordingly!
 #>
 param(
-	[Parameter(Mandatory=$true)]
+	[Parameter(Mandatory)]
 	[int[]]$Ports,
-	[Parameter(Mandatory=$true)]
+	[Parameter(Mandatory)]
 	[string]$ListenToIP,
-	[Parameter(Mandatory=$true)]
-	[string]$WslFirewallRuleName,
+	[Parameter(Mandatory)]
+	[ArgumentCompletions('"WSL portforward"')]
+	[string]$FirewallRuleName,
 	[string]$WslUser,
 	[string[]]$ServicesToRestart# Some services on WSL may require restarting in my expierence
 )
@@ -47,9 +70,9 @@ function RestartWslServices{
 
 # Removing old and setting current firewall rules
 # TODO: maybe error here possible, if there is no rule yet
-Remove-NetFireWallRule -DisplayName $WslFirewallRuleName
-New-NetFireWallRule -DisplayName $WslFirewallRuleName -Direction Outbound -LocalPort $PortsString -Action Allow -Protocol TCP
-New-NetFireWallRule -DisplayName $WslFirewallRuleName -Direction Inbound  -LocalPort $PortsString -Action  Allow -Protocol TCP
+Remove-NetFireWallRule -DisplayName $FirewallRuleName
+New-NetFireWallRule -DisplayName $FirewallRuleName -Direction Outbound -LocalPort $PortsString -Action Allow -Protocol TCP
+New-NetFireWallRule -DisplayName $FirewallRuleName -Direction Inbound  -LocalPort $PortsString -Action  Allow -Protocol TCP
 
 # Removing old and settign current portproxy rules
 foreach ($Port in $Ports) {
