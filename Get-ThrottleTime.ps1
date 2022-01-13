@@ -39,7 +39,7 @@ $DoWorkHere = {
       $objNotifyIcon.Text = $probeResults.objNotifyIconText
     }
     [void] $Voice.Speak("Throttle at ${temperature} degrees to ${clock} hertz")
-    while ([int]$clock -le 900){
+    while ([int]$clock -lt 2000){
       start-sleep -Seconds 1
       $clock = $probeResults.clock
       $temperature = $probeResults.temperature
@@ -85,6 +85,7 @@ $objNotifyIcon.add_DoubleClick($ExitBlock)
 # Assigning context menu strip to icon
 $objNotifyIcon.ContextMenuStrip = $objNotifyIconContextMenu
 
+try {
 # This should be set before any actions, like showBaloonTip,
 # but after callbacks assigning, like double click event callback
 $objNotifyIcon.Visible = $True
@@ -95,3 +96,6 @@ Start-ThreadJob -ArgumentList $objNotifyIcon -Name DoWorkHere -ScriptBlock $DoWo
 
 # form needs to exist for us to interact with context menu
 $form.ShowDialog()
+} catch {
+  $_
+}
