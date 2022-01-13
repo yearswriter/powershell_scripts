@@ -2,25 +2,49 @@
 
 $DoWorkHere = {
   param($objNotifyIcon)
+  function Get-ClockAndTemperature {
+    $sensors = $(Get-CimInstance -Namespace Root\OpenHardwareMonitor -Class sensor)
+    $clock =  [math]::Truncate(
+      $($sensors | Where-Object {
+        $_.SensorType -eq "Clock" -and $_.Name -eq "CPU Core #1"
+      } | Select-Object -Property Value).Value
+      )
+
+      $temperature = $($sensors | Where-Object {
+        $_.SensorType -eq "Temperature" -and $_.Name -eq "CPU Core #1"
+      } | Select-Object -Property Value).Value
+
+      $objNotifyIconText = "${clock}|${temperature}"
+
+      return @{
+        clock = $clock
+        temperature = $temperature
+        objNotifyIconText = $objNotifyIconText
+      }
+
+  }
   $Voice = New-Object -ComObject SAPI.SPVoice
   $Voice.Voice = $Voice.GetVoices()[1]
   Do {
-    $clock =  [math]::Truncate($(Get-CimInstance -Namespace Root\OpenHardwareMonitor -Class sensor)[8].Value)
-    $temperature = $(Get-CimInstance -Namespace Root\OpenHardwareMonitor -Class sensor)[3].Value
-    $objNotifyIcon.Text = "${clock}|${temperature}"
+    $probeResults = Get-ClockAndTemperature
+    $clock = $probeResults.clock
+    $temperature = $probeResults.temperature
+    $objNotifyIcon.Text = $probeResults.objNotifyIconText
     [void] $Voice.Speak("Full speed")
     while ([int]$clock -ge 2000){
-      $objNotifyIcon.Text = "${clock}|${temperature}"
-      $clock =  [math]::Truncate($(Get-CimInstance -Namespace Root\OpenHardwareMonitor -Class sensor)[8].Value)
-      $temperature = $(Get-CimInstance -Namespace Root\OpenHardwareMonitor -Class sensor)[3].Value
-      start-sleep -s 1
+      start-sleep -Seconds 1
+      $probeResults = Get-ClockAndTemperature
+      $clock = $probeResults.clock
+      $temperature = $probeResults.temperature
+      $objNotifyIcon.Text = $probeResults.objNotifyIconText
     }
     [void] $Voice.Speak("Throttle at ${temperature} degrees to ${clock} hertz")
     while ([int]$clock -le 900){
-      $objNotifyIcon.Text = "${clock}|${temperature}"
-      $clock =  [math]::Truncate($(Get-CimInstance -Namespace Root\OpenHardwareMonitor -Class sensor)[8].Value)
-      $temperature = $(Get-CimInstance -Namespace Root\OpenHardwareMonitor -Class sensor)[3].Value
-      start-sleep -s 1
+      start-sleep -Seconds 1
+      $clock = $probeResults.clock
+      $temperature = $probeResults.temperature
+      $objNotifyIcon.Text = $probeResults.objNotifyIconText
+      $probeResults = Get-ClockAndTemperature
     }
     } While ($true)
 }
