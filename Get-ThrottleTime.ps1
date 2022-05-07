@@ -31,7 +31,7 @@ $DoWorkHere = {
     $temperature = $probeResults.temperature
     $objNotifyIcon.Text = $probeResults.objNotifyIconText
     [void] $Voice.Speak("Full speed")
-    while ([int]$clock -ge 2000){
+    while ([int]$clock -ge 1000){
       start-sleep -Seconds 1
       $probeResults = Get-ClockAndTemperature
       $clock = $probeResults.clock
@@ -76,7 +76,7 @@ $ClickMeButton.add_Click($ExitBlock)
 # NotifyIcon object creation and setting all the settings
 $objNotifyIcon = New-Object System.Windows.Forms.NotifyIcon
 # can also assept plain *.ico file path and extract icon from *.exe
-$objNotifyIcon.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon("C:\Windows\System32\shell32.dll")
+$objNotifyIcon.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon("$env:windir\System32\shell32.dll")
 $objNotifyIcon.Text = "Icon text"
 $objNotifyIcon.Tag = "Icon tag"
 

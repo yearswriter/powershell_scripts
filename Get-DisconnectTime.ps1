@@ -8,7 +8,7 @@ Start-Job -Name InternetGuard -ScriptBlock {
   Do {
     Write-Host $objNotifyIcon.Visible
     while ($internet) {
-      Start-Sleep -s 900
+      Start-Sleep -s 15
       $internet = (Test-NetConnection).PingSucceeded
     }
     [void] $Voice.Speak('Проблемы соединения! Запускаю ждуна рабочего подключения.')
