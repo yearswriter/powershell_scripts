@@ -31,7 +31,7 @@ $ClickMeButton.add_Click({
 # NotifyIcon object creation and setting all the settings
 $objNotifyIcon = New-Object System.Windows.Forms.NotifyIcon
 # can also assept plain *.ico file path and extract icon from *.exe
-$objNotifyIcon.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon("C:\Windows\System32\shell32.dll")
+$objNotifyIcon.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon("$env:windir\System32\shell32.dll")
 $objNotifyIcon.BalloonTipIcon = "Info"
 $objNotifyIcon.BalloonTipTitle = "Balloon tip title"
 $objNotifyIcon.BalloonTipText = "Baloon tip text"
@@ -49,19 +49,22 @@ $objNotifyIcon.add_DoubleClick({
 # Assigning context menu strip to icon
 $objNotifyIcon.ContextMenuStrip = $objNotifyIconContextMenu
 
-# This should be set before any actions, like showBaloonTip,
-# but after callbacks assigning, like double click event callback
-$objNotifyIcon.Visible = $True
 
 $objNotifyIcon.ShowBalloonTip(1000)
+try {
+  # This should be set before any actions, like showBaloonTip,
+  # but after callbacks assigning, like double click event callback
+  $objNotifyIcon.Visible = $True
 
-# Start-Thread job to be able to interact with tray icon from the job
-# without serialisation\deserialisation headache
-Start-ThreadJob -ArgumentList $objNotifyIcon -Name DoWorkHere -ScriptBlock $DoWorkHere
+  # Start-Thread job to be able to interact with tray icon from the job
+  # without serialisation\deserialisation headache
+  Start-ThreadJob -ArgumentList $objNotifyIcon -Name DoWorkHere -ScriptBlock $DoWorkHere
 
-# form needs to exist for us to interact with context menu
-$form.ShowDialog()
-
+  # form needs to exist for us to interact with context menu
+  $form.ShowDialog()
+} catch {
+  $_
+}
 #(1) https://www.csharp411.com/hide-form-from-alttab/
 #    https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.formborderstyle?view=windowsdesktop-6.0
 #    https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.form?view=windowsdesktop-6.0
