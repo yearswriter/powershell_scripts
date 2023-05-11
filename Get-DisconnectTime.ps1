@@ -1,9 +1,10 @@
 param(
   [Parameter()]
   [ArgumentCompletions('pesheevpavel.ru', 'google.com')]
-  [string]$Watch
+  [string]$Watch = 'google.com'
 )
-Start-Job -Name InternetGuard -ScriptBlock {
+Start-Job -Name InternetGuard -ArgumentList $Watch -ScriptBlock {
+  param($Watch)
   $Voice = New-Object -ComObject SAPI.SPVoice
   $Voice.Voice = $Voice.GetVoices()[0]
   [void] $Voice.Speak('Запускаю наблюдателя за интернет-соединением.')
