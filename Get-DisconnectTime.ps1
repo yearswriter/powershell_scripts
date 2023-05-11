@@ -1,26 +1,30 @@
-
+param(
+  [Parameter()]
+  [ArgumentCompletions('pesheevpavel.ru', 'google.com')]
+  [string]$Watch
+)
 Start-Job -Name InternetGuard -ScriptBlock {
   $Voice = New-Object -ComObject SAPI.SPVoice
   $Voice.Voice = $Voice.GetVoices()[0]
   [void] $Voice.Speak('Запускаю наблюдателя за интернет-соединением.')
-  $t = Test-NetConnection
+  $t = Test-NetConnection -ComputerName $Watch
   $internet = $t.PingSucceeded
+  Write-Host $objNotifyIcon.Visible
   Do {
-    Write-Host $objNotifyIcon.Visible
     while ($internet) {
-      Start-Sleep -s 15
-      $internet = (Test-NetConnection).PingSucceeded
+      Start-Sleep -s 5
+      $internet = (Test-NetConnection -ComputerName $Watch).PingSucceeded
     }
     [void] $Voice.Speak('Проблемы соединения! Запускаю ждуна рабочего подключения.')
     while (-Not $internet) {
       Start-Sleep -s 5
-      $internet = (Test-NetConnection).PingSucceeded
+      $internet = (Test-NetConnection -ComputerName $Watch).PingSucceeded
     }
     [void] $Voice.Speak('Интернет появился!')
   } While ($True)
 }
 
-try{
+try {
   [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
   $Voice = New-Object -ComObject SAPI.SPVoice
   $Voice.Voice = $Voice.GetVoices()[0]
@@ -32,13 +36,14 @@ try{
   }
 
   $objNotifyIcon = New-Object System.Windows.Forms.NotifyIcon
-  $objNotifyIcon.Icon =  [System.Drawing.Icon]::ExtractAssociatedIcon("C:\Windows\System32\telnet.exe")
-  $objNotifyIcon.add_DoubleClick({CloseGuard})
+  $objNotifyIcon.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon("C:\Windows\System32\telnet.exe")
+  $objNotifyIcon.add_DoubleClick({ CloseGuard })
   $objNotifyIcon.Text = "Наблюдатель за интернетом"
   $objNotifyIcon.Tag = "InternetGuard."
   $objNotifyIcon.Visible = $True
   Get-Job -Name InternetGuard | Wait-Job
-} finally {
+}
+finally {
   $objNotifyIcon.Visible = $False
   $objNotifyIcon.Dispose()
 }
