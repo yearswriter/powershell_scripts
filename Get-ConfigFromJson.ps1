@@ -1,10 +1,11 @@
 param (
   [Parameter(Mandatory = $true,
-    HelpMessage = 'Full path to json config to convert from',
-    Position = 1)]
+    HelpMessage = 'Full path to config file to convert from')]
   [ArgumentCompleter({
       param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
-      $configs = Get-ChildItem *.conf
+      $configs = Get-ChildItem | Where-Object {
+        $_.Extension -match 'conf' -Or $_.Extension -match 'json'
+      }
       foreach ($config in $configs) {
         New-Object -Type System.Management.Automation.CompletionResult -ArgumentList $config.FullName,
         $config.FullName,
