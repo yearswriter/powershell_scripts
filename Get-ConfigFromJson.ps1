@@ -1,8 +1,17 @@
 param (
-  [Parameter(Mandatory=$true)]
+  [Parameter(Mandatory = $true)]
+  [ArgumentCompleter({
+      param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+      $configs = Get-ChildItem *.conf
+      foreach ($config in $configs) {
+        New-Object -Type System.Management.Automation.CompletionResult -ArgumentList $config.FullName,
+        $config.FullName,
+        "ParameterValue",
+        $config.FullName
+      }
+    })]
   [string]$ConfigFile
 )
 
-$ConfigPath = (Get-Location).path + "\" + $ConfigFile
-$Config =  Get-Content $ConfigPath | ConvertFrom-Json
+$Config = Get-Content $ConfigFile | ConvertFrom-Json
 return $Config
