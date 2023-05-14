@@ -1,13 +1,13 @@
 param(
   [Parameter()]
   [ArgumentCompletions('pesheevpavel.ru', 'google.com')]
-  [string]$Watch = 'google.com'
+  [string]$Watch = 'pesheevpavel.ru'
 )
 Start-Job -Name InternetGuard -ArgumentList $Watch -ScriptBlock {
   param($Watch)
   $Voice = New-Object -ComObject SAPI.SPVoice
   $Voice.Voice = $Voice.GetVoices()[0]
-  [void] $Voice.Speak('Запускаю наблюдателя за интернет-соединением.')
+  [void] $Voice.Speak("Запускаю наблюдателя за интернет-соединением с $Watch.")
   $t = Test-NetConnection -ComputerName $Watch
   $internet = $t.PingSucceeded
   Write-Host $objNotifyIcon.Visible
@@ -16,12 +16,12 @@ Start-Job -Name InternetGuard -ArgumentList $Watch -ScriptBlock {
       Start-Sleep -s 5
       $internet = (Test-NetConnection -ComputerName $Watch).PingSucceeded
     }
-    [void] $Voice.Speak('Проблемы соединения! Запускаю ждуна рабочего подключения.')
+    [void] $Voice.Speak("Проблемы соединения с $Watch! Запускаю ждуна рабочего подключения.")
     while (-Not $internet) {
       Start-Sleep -s 5
       $internet = (Test-NetConnection -ComputerName $Watch).PingSucceeded
     }
-    [void] $Voice.Speak('Интернет появился!')
+    [void] $Voice.Speak("$Watch online")
   } While ($True)
 }
 
