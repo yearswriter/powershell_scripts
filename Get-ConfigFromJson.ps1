@@ -1,5 +1,7 @@
 param (
-  [Parameter(Mandatory = $true)]
+  [Parameter(Mandatory = $true,
+    HelpMessage = 'Full path to json config to convert from',
+    Position = 1)]
   [ArgumentCompleter({
       param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
       $configs = Get-ChildItem *.conf
