@@ -57,12 +57,12 @@ function GetWslIP {
 	return $WslLocalIp
 }
 
-function RestartWslServices{
+function RestartWslServices {
 	param(
 		[string]$WslUser,
 		[string[]]$ServicesToRestart
 		)
-	foreach ($Service in $ServicesToRestart){
+	foreach ($Service in $ServicesToRestart) {
 		wsl -u $WslUser sudo /etc/init.d/$Service stop
 		wsl -u $WslUser sudo /etc/init.d/$Service start
 #TODO: Maybe check bash $? and raise an error if needed
@@ -82,6 +82,6 @@ foreach ($Port in $Ports) {
 }
 
 # restarting services if params not empty
-if ($WslUser -and $ServicesToRestart){
+if ($WslUser -and $ServicesToRestart) {
 	RestartWslServices -WslUser $WslUser -ServicesToRestart $ServicesToRestart
 }
