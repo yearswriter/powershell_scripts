@@ -43,16 +43,13 @@ param(
 #Requires -Version 7
 #Requires -RunAsAdministrator
 
-# Creating string of ports for firewall rules
-$PortsString = $Ports -join ','
-
 # Figuring out wsl local IP
 function GetWslIP {
 	$WslLocalIp = wsl ip -4 a show eth0 | awk 'FNR == 2 {sub (/\/[0-9]+/,""); print $2 }'
 	# Litte sanity check
 	if ( -not ($WslLocalIp -match '(\d{1,3}\.){3}\d{1,3}')) {
 		exit
-#TODO: Maybe also raise an error instead of just exiting
+		#TODO: Maybe also raise an error instead of just exiting
 	}
 	return $WslLocalIp
 }
@@ -61,13 +58,19 @@ function RestartWslServices {
 	param(
 		[string]$WslUser,
 		[string[]]$ServicesToRestart
-		)
+	)
 	foreach ($Service in $ServicesToRestart) {
 		wsl -u $WslUser sudo /etc/init.d/$Service stop
 		wsl -u $WslUser sudo /etc/init.d/$Service start
-#TODO: Maybe check bash $? and raise an error if needed
+		#TODO: Maybe check bash $? and raise an error if needed
 	}
 }
+
+# Get current wsl local Ip
+$WslLocalIp = GetWslIp
+
+# Creating string of ports for firewall rules
+$PortsString = $Ports -join ','
 
 # Removing old and setting current firewall rules
 # TODO: maybe error here possible, if there is no rule yet
@@ -79,6 +82,7 @@ New-NetFireWallRule -DisplayName $FirewallRuleName -Direction Inbound  -LocalPor
 foreach ($Port in $Ports) {
 	netsh interface portproxy delete v4tov4 listenport=$Port listenaddress=$ListenToIP
 	netsh interface portproxy add v4tov4 listenport=$Port listenaddress=$ListenToIP connectport=$Port connectaddress=$WslLocalIp
+	netsh interface portproxy show all
 }
 
 # restarting services if params not empty
