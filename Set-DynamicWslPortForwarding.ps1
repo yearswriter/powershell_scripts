@@ -25,7 +25,7 @@
 	Specifies comma-separated services name to restart on wsl machine, in case it is needed
 
 .EXAMPLE
-	.\DynamicWslPortForwarding.ps1 -Ports 22 -ListenToIP '0.0.0.0' -WslFirewallRuleName 'WSL 2 Firewall Porforwarding' -WslUser user -ServicesToRestart ssh
+	.\Set-DynamicWslPortForwarding.ps1 -Ports 22 -ListenToIP '0.0.0.0' -FirewallRuleName 'WSL 2 Firewall Portforwarding' -WslUser user -ServicesToRestart ssh
 .NOTES
 	!make sure WSL OS firewall is configured accordingly!
 #>
