@@ -48,12 +48,13 @@ $PortsString = $Ports -join ','
 
 # Figuring out wsl local IP
 function GetWslIP {
-	return  wsl ip -4 a show eth0 | awk 'FNR == 2 { /([0-9]+\.){3}[0-9]+/; sub (/\/[0-9]+/, \"\");print $2}'
+	$WslLocalIp = wsl ip -4 a show eth0 | awk 'FNR == 2 {sub (/\/[0-9]+/,""); print $2 }'
 	# Litte sanity check
-	if ( -not ($WslLocalIp -match '(\d{1,3}\.){3}\d{1,3}')){
+	if ( -not ($WslLocalIp -match '(\d{1,3}\.){3}\d{1,3}')) {
 		exit
 #TODO: Maybe also raise an error instead of just exiting
 	}
+	return $WslLocalIp
 }
 
 function RestartWslServices{
