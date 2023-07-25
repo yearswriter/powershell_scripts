@@ -31,8 +31,10 @@
 #>
 param(
 	[Parameter(Mandatory)]
+	[ArgumentCompletions(8022, 8033)]
 	[int[]]$Ports,
 	[Parameter(Mandatory)]
+	[ArgumentCompletions('0.0.0.0')]
 	[string]$ListenToIP,
 	[Parameter(Mandatory)]
 	[ArgumentCompletions('"WSL portforward"')]
